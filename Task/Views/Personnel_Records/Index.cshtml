@@ -1,0 +1,152 @@
+﻿@model IEnumerable<Personnel_Records>
+@{
+    ViewData["Title"] = "Index";
+}
+
+<form asp-controller="Personnel_Records" asp-action="Index" method="post" enctype="multipart/form-data">
+    <input  type="file" name="file" accept=".csv" />
+    <hr/>
+    <button type="submit">Upload</button>
+    
+</form>
+@if(TempData["AllertMessage"] != null)
+{
+<div>
+    @TempData["AllertMessage"] @*used to show notifications *@
+</div>
+}
+ <div id="gridKendo" ></div>
+ 
+<script type="text/javascript">
+
+var dataChosed; 
+
+$(document).ready(function() {
+
+        $("#gridKendo").kendoGrid({  // intializes kendo grid 
+        dataSource: CustomerHelper.gridDataSource(),
+        toolbar: ["search"], // used to search in kendo UI
+        search: {
+            fields: [
+                        { name: "Id", operator: "contains" },
+                        { name: "Payroll_Number", operator: "contains" },
+                        { name: "Forenames", operator: "contains" },
+                        { name: "Surenames", operator: "contains" },
+                        { name: "Date_of_Birth", operator: "contains" },
+                        { name: "Telephone", operator: "contains" },
+                        { name: "Mobile", operator: "contains" },
+                        { name: "Address", operator: "contains" },
+                        { name: "Address_2", operator: "contains" },
+                        { name: "Postcode", operator: "contains" },
+                        { name: "EMail_Home", operator: "contains" },
+                        { name: "Start_Date", operator: "contains" },
+                    ]
+            },
+        schema: {   //schema data that should be showd 
+            model: {
+                id: "Id",   
+                fields: {
+                    Id: { type: "number" },
+                    Payroll_Number: { type: "string" },
+                    Forenames: { type: "string" },
+                    Surenames: { type: "string" },
+                    Date_of_Birth: { type: "string" },
+                    Telephone: { type: "string" },
+                    Mobile: { type: "string" },
+                    Address: { type: "string" },
+                    Address_2: { type: "string" },
+                    Postcode: { type: "string" },
+                    EMail_Home: { type: "string" },
+                    Start_Date: { type: "string" },
+                }
+            }
+        },
+        columns: CustomerHelper.GenerateColumns(), // gets columns propertis form GenerateColumns function
+        type: "odata",
+        filterable: false, // disables filters 
+        sortable: true, // addes sort 
+        editable: "inline",
+        navigatable:true,
+        selectable: "multiple, row",
+        resizable: true, // anabels resize of columns
+
+     });
+});
+
+var CustomerHelper = { 
+    GenerateColumns: function() { // main columns propertis 
+        return columns = [
+            {field: "Id", title:"Id" , width: 160, editable:false, hidden : true},
+            {field: "Payroll_Number", title:"Payroll Number" , width: 160, editable:false , validation: { required: true}},
+            {field: "Forenames", title:"Forename" , width: 160, editable:false },
+            {field: "Surenames", title:"Surename" , width: 160, editable:false},
+            {field: "Date_of_Birth", title:"Date of Birth" , width: 160, editable:false},
+            {field: "Telephone", title:"Telephone" , width: 160, editable:false },
+            {field: "Mobile", title:"Mobile " , width: 160, editable:false },
+            {field: "Address", title:"Address" , width: 160, editable:false },
+            {field: "Address_2", title:"Address second" , width: 160, editable:false },
+            {field: "Postcode", title:"Postcode" , width: 160, editable:false },
+            {field: "EMail_Home", title:"EMail_Home" , width: 160, editable:false },
+            {field: "Start_Date", title:"Date of start" , width: 160, editable:false },
+            //{command: ["edit"] , title: "&nbsp;", width: 160}
+            { command: [{name: "edit",
+                text: {
+                    edit: "Edit",
+                    update: "Update",
+                    cancel: "Cancel"
+                }
+                }],
+                width: 160
+            }
+
+        ] // columns end 
+    },
+    
+    gridDataSource: function(){ // all information about transportation
+
+        var gridDataSource = new kendo.data.DataSource({
+            batch: true,
+            sort: ({ field: "Surenames", dir: "asc" }),
+            schema: {
+                data: "Items", total: "TotalCount", // used to read values 
+                model: {
+                    id: "Id",
+                    fields: {
+                        Id: { type: "number" },
+                        Payroll_Number: { type: "string", validation: { required: { message: "Please enter a last name for this employee" } } },
+                        Forenames: { type: "string", validation: { required: { message: "This field cannot be null " } } },
+                        Surenames: { type: "string", validation: { required: { message: "This field cannot be null " } } },
+                        Date_of_Birth: { type: "string", validation: { required: { message: "This field cannot be null " } } },
+                        Telephone: { type: "string", validation: { required: { message: "This field cannot be null " } } },
+                        Mobile: { type: "string", validation: { required: { message: "This field cannot be null " } } },
+                        Address: { type: "string", validation: { required: { message: "This field cannot be null " } } },
+                        Address_2: { type: "string", validation: { required: { message: "This field cannot be null " } } },
+                        Postcode: { type: "string" , validation: { required: { message: "This field cannot be null " } }},
+                        EMail_Home: { type: "string", validation: { required: { message: "This field cannot be null " } } },
+                        Start_Date: { type: "string", validation: { required: { message: "This field cannot be null " } } },
+                    }
+                }
+            },
+            transport: { 
+                read: {
+                    url: '../Personnel_Records/GetAllRecordsJson', // goes to controller ->  action 
+                    type: "GET",
+                    dataType: "json",
+                    contentType: "application/json; charser=utf-8"
+                },
+                update: {
+                    url: '../Personnel_Records/update', //  goes to controller ->  action 
+                    type: "POST",
+                },
+                parameterMap: function(options, operation ) {
+                   if (operation !== "read" && options.models) // converts data json end sends if it is not read transport type
+                   {
+                       return { models: kendo.stringify(options.models) };
+                   }
+                }
+            },
+        });
+        return gridDataSource;
+    },
+}
+</script>
